@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UniSekela — Investor Prototype v3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --grad: linear-gradient(135deg,#6366f1 0%, #8b5cf6 100%);
+    --indigo:#6366f1; --indigo-deep:#4f46e5; --purple:#8b5cf6;
+    --green:#10b981; --orange:#f59e0b; --pink:#ec4899; --teal:#14b8a6;
+    --bg:#F8F9FC; --card:#fff; --border:#eef0f6;
+    --text:#0f172a; --text-soft:#64748b; --text-faint:#94a3b8;
+    --green-bg:#ecfdf5; --orange-bg:#fffbeb; --indigo-bg:#eef0ff; --pink-bg:#fdf2f8;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
+  h1,h2,h3{font-family:'Manrope',sans-serif;}
+  button{font-family:inherit;}
+  input,select,textarea{font-family:inherit;}
+
+  .proto-bar{background:#101018;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:300;flex-wrap:wrap;}
+  .proto-bar .label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#9095AA;font-weight:700;margin-right:6px;}
+  .proto-tab{background:transparent;border:1px solid #2b2c3d;color:#C7C9DA;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:.15s;}
+  .proto-tab:hover{border-color:var(--indigo);color:#fff;}
+  .proto-tab.active{background:var(--grad);border-color:transparent;color:#fff;}
+  .screen{display:none;} .screen.active{display:block;}
+
+  .app-shell{display:flex;min-height:calc(100vh - 50px);}
+  .sidebar{width:244px;background:#fff;border-right:1px solid var(--border);padding:18px 12px;flex-shrink:0;display:flex;flex-direction:column;}
+  .logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:18.5px;padding:6px 10px 20px;}
+  .sidebar-nav{display:flex;flex-direction:column;gap:1px;}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:var(--text-soft);font-weight:500;font-size:14.5px;cursor:pointer;background:none;border:none;width:100%;text-align:left;}
+  .nav-item.active{background:var(--indigo-bg);color:var(--indigo-deep);font-weight:700;}
+  .sidebar-section{margin-top:16px;}
+  .section-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-faint);font-weight:700;margin:0 10px 8px;}
+  .sidebar-groups-list{display:flex;flex-direction:column;gap:1px;}
+  .sidebar-group-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:9px;font-size:13.5px;color:var(--text-soft);cursor:pointer;background:none;border:none;text-align:left;width:100%;}
+  .sidebar-group-item:hover{background:#FAFAFC;}
+  .indicator{width:8px;height:8px;border-radius:50%;flex-shrink:0;display:inline-block;}
+  .sidebar-footer{margin-top:auto;border-top:1px solid var(--border);padding-top:10px;}
+  .profile-pill{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:none;border:none;width:100%;cursor:pointer;}
+  .avatar{width:34px;height:34px;border-radius:50%;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;}
+  .user-meta{display:flex;flex-direction:column;align-items:flex-start;}
+  .u-name{font-weight:700;font-size:13.5px;}
+  .u-status{font-size:11.5px;color:var(--green);}
+
+  .main-content{flex:1;padding:30px 36px;overflow-y:auto;}
+
+  .btn-primary{background:var(--grad);color:#fff;border:none;padding:12px 20px;border-radius:11px;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 8px 20px -10px rgba(99,102,241,.6);}
+  .btn-primary:disabled{opacity:.6;cursor:not-allowed;}
+  .btn-secondary{background:#fff;border:1.5px solid var(--border);color:var(--text);padding:11px 18px;border-radius:11px;font-weight:600;font-size:13.5px;cursor:pointer;}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:20px;font-size:11.5px;font-weight:700;}
+  .pill.ai{background:var(--indigo-bg);color:var(--indigo-deep);}
+  .pill.ok{background:var(--green-bg);color:#059669;}
+  .pill.pending{background:var(--orange-bg);color:#b45309;}
+
+  /* ===== Onboarding: University select ===== */
+  .partner-wrap{min-height:calc(100vh - 50px);display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 12% 15%,#EEF0FF 0%,transparent 42%),radial-gradient(circle at 88% 85%,#F0F5FF 0%,transparent 42%),var(--bg);padding:40px 20px;}
+  .partner-card{width:520px;background:#fff;border:1px solid var(--border);border-radius:24px;padding:42px 40px;box-shadow:0 30px 70px -32px rgba(30,20,90,.18);}
+  .onboard-step{font-size:11.5px;font-weight:700;color:var(--indigo-deep);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
+  .partner-badge{width:52px;height:52px;border-radius:15px;background:var(--grad);display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;margin-bottom:16px;}
+  .partner-card h1{font-size:22px;margin:0 0 8px;}
+  .partner-card p.sub{color:var(--text-soft);font-size:14px;line-height:1.55;margin:0 0 24px;}
+  .uni-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:22px;}
+  .uni-row{display:flex;align-items:center;gap:13px;border:1.5px solid var(--border);border-radius:13px;padding:13px 15px;cursor:pointer;transition:.15s;}
+  .uni-row.selected{border-color:var(--indigo);background:#FAFAFF;}
+  .uni-row.disabled{opacity:.55;cursor:default;}
+  .uni-logo{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#fff;flex-shrink:0;}
+  .uni-row .meta strong{display:block;font-size:14px;}
+  .uni-row .meta span{font-size:12px;color:var(--text-faint);}
+  .partner-note{background:var(--indigo-bg);border-radius:13px;padding:14px 16px;font-size:12.5px;color:var(--indigo-deep);line-height:1.5;margin-top:18px;}
+  .lms-connect-box{border:1.5px solid var(--border);border-radius:16px;padding:24px;text-align:center;margin-bottom:20px;}
+  .lms-connect-box .spinner{width:34px;height:34px;border-radius:50%;border:3px solid var(--indigo-bg);border-top-color:var(--indigo);animation:spin 0.8s linear infinite;margin:0 auto 14px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ===== Match modules (onboarding step 2) ===== */
+  .match-hero{display:flex;align-items:center;gap:14px;margin-bottom:6px;}
+  .match-icon{width:42px;height:42px;border-radius:12px;background:var(--grad);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0;}
+  .match-list{display:flex;flex-direction:column;gap:11px;margin:22px 0 28px;}
+  .match-row{display:flex;align-items:center;gap:13px;background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px 17px;}
+  .mod-chip{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11.5px;color:#fff;flex-shrink:0;}
+  .match-row .info{flex:1;}
+  .match-row .info strong{display:block;font-size:14px;}
+  .match-row .info span{font-size:12.5px;color:var(--text-soft);}
+  .check-dot{width:24px;height:24px;border-radius:50%;background:var(--green-bg);color:#059669;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+  .match-cta{display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--indigo-bg);border:1px dashed #c7c9fb;border-radius:16px;padding:22px 26px;flex-wrap:wrap;}
+  .match-cta strong{font-size:15.5px;display:block;margin-bottom:3px;}
+  .match-cta span{font-size:13px;color:var(--text-soft);}
+
+  /* ===== My Study Groups ===== */
+  .groups-header{margin-bottom:24px;}
+  .groups-title{font-size:24px;margin:0 0 6px;font-weight:800;}
+  .groups-subtitle{margin:0;color:var(--text-soft);font-size:14px;}
+  .stats-container{display:flex;gap:16px;margin-bottom:24px;}
+  .stat-card{flex:1;background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px 20px;display:flex;align-items:center;gap:14px;}
+  .stat-icon-wrap{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .stat-icon-wrap.purple{background:var(--indigo-bg);color:var(--indigo-deep);}
+  .stat-icon-wrap.green{background:var(--green-bg);color:#059669;}
+  .stat-icon-wrap.orange{background:var(--orange-bg);color:#b45309;}
+  .stat-number{display:block;font-size:21px;font-weight:800;line-height:1;}
+  .stat-desc{font-size:12.5px;color:var(--text-soft);}
+  .groups-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .group-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:19px;position:relative;transition:.15s;}
+  .group-card:hover{border-color:var(--indigo);}
+  .avatar-box{position:relative;width:fit-content;}
+  .avatar-main{width:44px;height:44px;border-radius:12px;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;}
+  .badge-float{position:absolute;top:-6px;right:-6px;background:var(--indigo);color:#fff;font-size:10.5px;width:19px;height:19px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;border:2px solid #fff;}
+  .group-id{font-size:15.5px;margin:12px 0 1px;font-weight:800;}
+  .group-full-name{font-size:12px;color:var(--text-faint);margin:0 0 8px;}
+  .group-description{font-size:12.5px;color:var(--text-soft);margin:0 0 12px;line-height:1.4;}
+  .card-footer-meta{display:flex;align-items:center;gap:14px;font-size:11.5px;color:var(--text-faint);border-top:1px solid var(--border);padding-top:10px;margin-bottom:12px;}
+  .meta-info{display:flex;align-items:center;gap:5px;}
+  .open-btn{width:100%;background:var(--grad);color:#fff;border:none;padding:10px;border-radius:11px;font-weight:700;font-size:13px;cursor:pointer;}
+  .empty-state-card{border:1.5px dashed var(--border);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:26px;color:var(--text-soft);}
+
+  /* ===== Resources ===== */
+  .resources-header .header-content{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:14px;}
+  .resources-title{font-size:23px;margin:0 0 5px;font-weight:800;}
+  .resources-subtitle{margin:0;color:var(--text-soft);font-size:13.5px;}
+  .ai-sync-badge{display:flex;align-items:center;gap:9px;background:var(--green-bg);border-radius:12px;padding:9px 15px;font-size:12.5px;font-weight:700;color:#059669;}
+  .resources-controls{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+  .filter-pill{border:1px solid var(--border);background:#fff;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;}
+  .filter-pill.active{background:var(--text);color:#fff;border-color:var(--text);}
+  .results-status{font-size:12px;color:var(--text-faint);margin-bottom:14px;font-weight:600;}
+  .resources-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .resource-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;}
+  .resource-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .resource-type-badge{font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:7px;}
+  .resource-name{font-size:13.5px;margin:0 0 8px;font-weight:700;line-height:1.4;}
+  .resource-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .resource-module{font-size:10.5px;font-weight:700;color:var(--indigo-deep);background:var(--indigo-bg);padding:3px 7px;border-radius:6px;}
+  .resource-date{font-size:11px;color:var(--text-faint);}
+  .date-chip{display:inline-flex;align-items:center;gap:5px;background:var(--orange-bg);color:#b45309;font-size:10.5px;font-weight:700;padding:5px 9px;border-radius:8px;margin-top:8px;}
+  .ai-tag{font-size:10px;color:var(--indigo-deep);font-weight:700;}
+
+  /* ===== Profile ===== */
+  .profile-container{display:grid;grid-template-columns:1fr 310px;gap:20px;align-items:start;}
+  .profile-page{background:#fff;border:1px solid var(--border);border-radius:18px;overflow:hidden;}
+  .profile-banner{height:114px;background:var(--grad);}
+  .profile-main{padding:0 24px;}
+  .profile-avatar-section{margin-top:-38px;}
+  .profile-avatar{width:78px;height:78px;border-radius:50%;background:var(--grad);border:5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:25px;}
+  .profile-name{font-size:20px;margin:11px 0 1px;font-weight:800;}
+  .profile-username{color:var(--text-faint);font-size:13px;margin:0 0 13px;}
+  .profile-bio{padding:0 24px 22px;}
+  .bio-text{font-size:13.5px;color:var(--text-soft);line-height:1.55;margin:0 0 13px;}
+  .bio-details{display:flex;flex-direction:column;gap:7px;}
+  .bio-detail{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--text-soft);}
+  .profile-tabs{display:flex;border-top:1px solid var(--border);}
+  .tab-btn{flex:1;padding:13px;text-align:center;font-weight:700;font-size:13px;color:var(--text-faint);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;}
+  .tab-btn.active{color:var(--indigo-deep);border-bottom-color:var(--indigo-deep);}
+  .side-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px 20px;margin-bottom:16px;}
+  .side-card h3{font-size:14px;margin:0 0 14px;display:flex;align-items:center;gap:8px;justify-content:space-between;}
+  .planner-item{display:flex;gap:11px;padding:9px 0;border-bottom:1px solid #F2F3F8;}
+  .planner-item:last-child{border-bottom:none;}
+  .planner-bar{width:6px;border-radius:4px;align-self:stretch;flex-shrink:0;}
+  .planner-date{width:38px;text-align:center;flex-shrink:0;}
+  .planner-date .d{font-size:15px;font-weight:800;line-height:1;}
+  .planner-date .m{font-size:9px;text-transform:uppercase;color:var(--text-faint);font-weight:700;}
+  .planner-info strong{font-size:12.3px;display:block;line-height:1.35;}
+  .planner-src{font-size:10.5px;color:var(--text-faint);display:flex;align-items:center;gap:4px;margin-top:3px;}
+  .snapshot-row{display:flex;justify-content:space-between;padding:7px 0;font-size:13px;font-weight:600;border-bottom:1px solid #F5F6FA;}
+  .snapshot-row:last-child{border-bottom:none;}
+
+  /* ===== Home / Study Feed ===== */
+  .study-feed-container{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;}
+  .feed-header{margin-bottom:16px;}
+  .feed-title{font-size:23px;margin:0 0 5px;font-weight:800;}
+  .feed-subtitle{margin:0;color:var(--text-soft);font-size:13.5px;}
+  .feed-toggle{display:flex;gap:6px;background:#EEEFF5;border-radius:12px;padding:4px;width:fit-content;margin-bottom:18px;}
+  .feed-toggle button{border:none;background:transparent;padding:9px 18px;border-radius:9px;font-weight:700;font-size:12.5px;cursor:pointer;color:var(--text-soft);}
+  .feed-toggle button.active{background:#fff;color:var(--text);box-shadow:0 2px 6px rgba(20,20,40,.08);}
+  .post-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:17px 19px;margin-bottom:13px;}
+  .post-author{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .author-avatar{width:34px;height:34px;border-radius:10px;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;}
+  .author-name{font-weight:700;font-size:13px;display:block;}
+  .author-time{font-size:11px;color:var(--text-faint);}
+  .post-content p{font-size:13.5px;color:var(--text-soft);margin:0;line-height:1.5;}
+
+  .mail-connect-box{display:flex;flex-direction:column;gap:12px;background:var(--indigo-bg);border:1px dashed #c7c9fb;border-radius:16px;padding:18px 20px;margin-bottom:16px;}
+  .mail-connect-box strong{font-size:14.5px;}
+  .mail-connect-box span{font-size:12.5px;color:var(--text-soft);line-height:1.5;}
+  .mail-connected-bar{display:flex;align-items:center;justify-content:space-between;background:var(--green-bg);border-radius:14px;padding:12px 18px;margin-bottom:16px;font-size:13px;font-weight:700;color:#059669;}
+  .mail-row{display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--border);border-radius:13px;padding:13px 15px;margin-bottom:9px;}
+  .mail-row.unread{border-left:3px solid var(--indigo);}
+  .mail-avatar{width:33px;height:33px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:11.5px;}
+  .mail-subject{font-weight:700;font-size:12.5px;margin-bottom:3px;}
+  .mail-snippet{font-size:12px;color:var(--text-soft);line-height:1.4;}
+  .mail-meta{font-size:10.5px;color:var(--text-faint);margin-top:6px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+  .preview-dim{opacity:.55;pointer-events:none;}
+
+  /* ===== ActivityPanel (mirrors ActivityPanel.jsx) ===== */
+  .activity-panel-widget{display:flex;flex-direction:column;gap:16px;}
+  .ap-section{background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px 18px;}
+  .ap-section-header{margin-bottom:10px;}
+  .ap-section-title{display:flex;align-items:center;gap:8px;font-size:13.5px;margin:0;font-weight:700;}
+  .ap-activity-item,.ap-resource-item{padding:9px 0;border-bottom:1px solid #F2F3F8;cursor:pointer;}
+  .ap-activity-item:last-child,.ap-resource-item:last-child{border-bottom:none;}
+  .ap-activity-header{display:flex;justify-content:space-between;margin-bottom:3px;}
+  .ap-activity-group{font-size:11px;font-weight:800;}
+  .ap-activity-time,.ap-resource-time{font-size:10.5px;color:var(--text-faint);}
+  .ap-activity-message{font-size:12.5px;color:var(--text-soft);margin:0;line-height:1.4;}
+  .ap-view-all-btn{width:100%;background:none;border:none;color:var(--indigo-deep);font-weight:700;font-size:12px;padding:8px 0 0;cursor:pointer;text-align:center;}
+  .ap-resource-item{display:flex;gap:10px;align-items:flex-start;}
+  .ap-resource-icon{font-size:16px;}
+  .ap-resource-header{display:flex;justify-content:space-between;margin-bottom:2px;}
+  .ap-resource-module{font-size:11px;font-weight:800;color:var(--indigo-deep);}
+  .ap-resource-name{font-size:12.3px;margin:0;color:var(--text-soft);}
+  .ap-tip-box{background:var(--orange-bg);border-radius:14px;padding:12px 14px;display:flex;gap:9px;align-items:flex-start;}
+  .ap-tip-text{font-size:11.5px;color:#b45309;margin:0;line-height:1.4;}
+
+  /* ===== Group Chat (mirrors GroupChat.jsx) ===== */
+  .workspace-wrapper{display:flex;flex-direction:column;height:calc(100vh - 50px);}
+  .workspace-header{display:flex;justify-content:space-between;align-items:center;padding:16px 26px;border-bottom:1px solid var(--border);background:#fff;}
+  .header-brand{display:flex;align-items:center;gap:12px;}
+  .brand-box{width:42px;height:42px;border-radius:11px;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;}
+  .brand-text h3{margin:0 0 2px;font-size:15.5px;}
+  .brand-text p{margin:0;font-size:12px;color:var(--text-soft);display:flex;align-items:center;gap:6px;}
+  .status-indicator{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;}
+  .header-controls{display:flex;gap:8px;}
+  .control-btn{display:flex;align-items:center;gap:6px;border:1px solid var(--border);background:#fff;padding:8px 13px;border-radius:10px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--text-soft);}
+  .workspace-nav{display:flex;gap:4px;padding:0 26px;background:#fff;border-bottom:1px solid var(--border);}
+  .nav-link{padding:12px 18px;font-weight:700;font-size:13.5px;color:var(--text-faint);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;}
+  .nav-link.active{color:var(--indigo-deep);border-bottom-color:var(--indigo-deep);}
+  .workspace-body{flex:1;overflow-y:auto;background:var(--bg);}
+  .chat-interface{display:flex;flex-direction:column;height:100%;}
+  .message-list{flex:1;overflow-y:auto;padding:22px 26px;display:flex;flex-direction:column;gap:4px;}
+  .message-row{display:flex;gap:10px;max-width:70%;margin-bottom:6px;}
+  .message-row.own{align-self:flex-end;flex-direction:row-reverse;}
+  .user-icon{width:30px;height:30px;border-radius:9px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;}
+  .message-details{display:flex;flex-direction:column;}
+  .user-label{font-size:11.5px;font-weight:700;color:var(--text-soft);margin-bottom:3px;}
+  .text-bubble{background:#fff;border:1px solid var(--border);padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:1.45;}
+  .message-row.own .text-bubble{background:var(--grad);color:#fff;border:none;}
+  .time-separator{text-align:center;font-size:11px;color:var(--text-faint);margin:14px 0 8px;}
+  .empty-state{text-align:center;padding:60px 20px;color:var(--text-soft);}
+  .input-footer{padding:16px 26px;background:#fff;border-top:1px solid var(--border);}
+  .input-pill{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:26px;padding:6px 8px 6px 18px;}
+  .input-pill input{flex:1;border:none;background:none;outline:none;font-size:13.5px;padding:9px 0;}
+  .send-circle{width:38px;height:38px;border-radius:50%;background:var(--grad);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+  .send-circle:disabled{opacity:.5;cursor:not-allowed;}
+
+  /* ===== Group Resources Tab ===== */
+  .group-tab-scroll-container{padding:22px 26px;}
+  .tab-title-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:12px;}
+  .tab-main-title{font-size:19px;margin:0 0 4px;font-weight:800;}
+  .tab-subtitle-text{margin:0;font-size:13px;color:var(--text-soft);}
+  .tab-search-filter-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .tab-search-field-container{flex:1;min-width:200px;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:11px;padding:9px 13px;}
+  .tab-search-field-container input{flex:1;border:none;outline:none;font-size:13px;}
+  .tab-filter-select-container{border:1px solid var(--border);border-radius:11px;padding:9px 13px;background:#fff;}
+  .tab-filter-select-container select{border:none;outline:none;font-size:13px;background:none;}
+  .results-indicator{font-size:12px;color:var(--text-faint);margin:0 0 12px;font-weight:600;}
+  .tab-resource-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+  .tab-card-item{display:flex;flex-direction:column;gap:6px;}
+  .tab-uploaded-label{font-size:11px;color:var(--text-faint);padding-left:4px;}
+  .tab-bottom-nav{margin-top:20px;text-align:center;}
+  .view-library-btn{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);padding:11px 18px;border-radius:11px;font-weight:700;font-size:13px;cursor:pointer;color:var(--indigo-deep);}
+  .tab-empty-state{text-align:center;padding:40px;color:var(--text-soft);font-size:13.5px;}
+
+  /* ===== Find Groups ===== */
+  .find-groups-container{max-width:680px;}
+  .fg-header{margin-bottom:20px;}
+  .fg-title{font-size:23px;margin:0 0 5px;font-weight:800;}
+  .fg-subtitle{margin:0;color:var(--text-soft);font-size:13.5px;}
+  .fg-search-box{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:13px 18px;margin-bottom:24px;}
+  .fg-search-box input{flex:1;border:none;outline:none;font-size:14.5px;font-weight:600;letter-spacing:.02em;}
+  .fg-results-title{font-size:16px;margin:0 0 14px;font-weight:800;}
+  .fg-groups-list{display:flex;flex-direction:column;gap:12px;}
+  .fg-group-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px 19px;}
+  .fg-group-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .fg-group-title{font-size:14.5px;margin:0;font-weight:800;}
+  .fg-group-members{font-size:12.5px;color:var(--text-soft);}
+  .fg-group-footer{display:flex;justify-content:space-between;align-items:center;}
+  .fg-current-badge{font-size:12px;font-weight:700;color:#059669;}
+  .fg-empty-badge{font-size:12px;font-weight:700;color:#b45309;}
+  .fg-full-badge{font-size:12px;font-weight:700;color:var(--text-faint);}
+  .fg-group-btn{background:var(--grad);color:#fff;border:none;padding:9px 18px;border-radius:10px;font-weight:700;font-size:12.5px;cursor:pointer;}
+  .fg-not-enrolled-card{background:#fff;border:1px dashed var(--border);border-radius:14px;padding:24px;text-align:center;}
+  .fg-not-enrolled-title{font-size:14.5px;margin:0 0 14px;font-weight:700;color:var(--text-soft);}
+  .fg-add-module-btn{display:inline-flex;align-items:center;gap:8px;background:var(--grad);color:#fff;border:none;padding:11px 20px;border-radius:11px;font-weight:700;font-size:13px;cursor:pointer;}
+  .fg-modal-overlay{position:fixed;inset:0;background:rgba(15,17,30,.5);display:flex;align-items:center;justify-content:center;z-index:500;}
+  .fg-modal{background:#fff;border-radius:18px;padding:30px 28px;width:380px;text-align:center;}
+  .fg-modal-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:22px;}
+  .fg-modal-icon.warning{background:var(--orange-bg);}
+  .fg-modal-icon.switch{background:var(--indigo-bg);}
+  .fg-modal-icon.first{background:#FEF3C7;}
+  .fg-modal-icon.add{background:var(--green-bg);}
+  .fg-modal-title{font-size:16.5px;margin:0 0 10px;}
+  .fg-modal-text{font-size:13.5px;color:var(--text-soft);line-height:1.55;margin:0 0 20px;}
+  .fg-modal-actions{display:flex;gap:10px;}
+  .fg-modal-actions-single{display:flex;}
+  .fg-modal-btn{flex:1;padding:11px;border-radius:11px;font-weight:700;font-size:13.5px;cursor:pointer;border:none;}
+  .fg-modal-btn.cancel{background:#F1F2F7;color:var(--text);}
+  .fg-modal-btn.confirm{background:var(--grad);color:#fff;}
+
+  /* ===== AI Search ===== */
+  .ai-search-page{max-width:760px;}
+  .ai-search-title{font-size:23px;margin:0 0 16px;font-weight:800;}
+  .ai-search-box{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:14px;}
+  .ai-search-box input{flex:1;border:none;outline:none;font-size:14px;}
+  .ai-example-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
+  .ai-example-chip{border:1px solid var(--border);background:#fff;border-radius:20px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text-soft);}
+  .ai-example-chip:hover{border-color:var(--indigo);color:var(--indigo-deep);}
+  .ai-response-card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:26px 28px;}
+  .ai-response-header{display:flex;align-items:center;gap:9px;margin-bottom:16px;font-weight:800;font-size:15px;}
+  .marks-table{width:100%;border-collapse:collapse;margin:10px 0 18px;}
+  .marks-table td{padding:8px 0;font-size:13.5px;border-bottom:1px solid #F2F3F8;}
+  .marks-table td:last-child{text-align:right;font-weight:700;}
+  .ai-callout{background:var(--indigo-bg);border-radius:13px;padding:14px 16px;margin-bottom:14px;}
+  .ai-callout strong{color:var(--indigo-deep);}
+  .ai-recommend-list{margin:0 0 20px;padding-left:18px;font-size:13.5px;color:var(--text-soft);line-height:1.7;}
+  .ai-response-actions{display:flex;gap:10px;}
+
+  /* ===== Messages (mirrors Messages.jsx) ===== */
+  .messages-page{display:flex;height:calc(100vh - 50px);}
+  .conversations-sidebar{width:320px;border-right:1px solid var(--border);background:#fff;display:flex;flex-direction:column;flex-shrink:0;}
+  .sidebar-header{padding:20px 20px 14px;}
+  .sidebar-title{font-size:18px;margin:0 0 4px;font-weight:800;}
+  .sidebar-subtitle{margin:0;font-size:12.5px;color:var(--text-soft);}
+  .search-bar{display:flex;align-items:center;gap:8px;margin:0 16px 12px;background:var(--bg);border-radius:11px;padding:9px 13px;}
+  .search-input{flex:1;border:none;background:none;outline:none;font-size:13px;}
+  .conversations-list{flex:1;overflow-y:auto;}
+  .conversation-item{display:flex;gap:11px;align-items:center;padding:11px 18px;cursor:pointer;border-bottom:1px solid #F5F6FA;}
+  .conversation-item:hover,.conversation-item.active{background:var(--indigo-bg);}
+  .conv-avatar-container{position:relative;flex-shrink:0;}
+  .conv-avatar{width:40px;height:40px;border-radius:11px;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;}
+  .online-indicator{position:absolute;bottom:-1px;right:-1px;width:10px;height:10px;border-radius:50%;background:var(--green);border:2px solid #fff;}
+  .conv-content{flex:1;min-width:0;}
+  .conv-header{display:flex;justify-content:space-between;}
+  .conv-name{font-weight:700;font-size:13.5px;}
+  .conv-time{font-size:11px;color:var(--text-faint);}
+  .conv-message{display:flex;justify-content:space-between;align-items:center;}
+  .conv-course{font-size:12px;color:var(--text-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .unread-badge{background:var(--indigo);color:#fff;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:20px;}
+  .chat-area{flex:1;display:flex;flex-direction:column;background:var(--bg);}
+  .empty-chat-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text-soft);}
+  .empty-chat-state .empty-icon{font-size:38px;margin-bottom:10px;}
+  .chat-header{display:flex;align-items:center;gap:12px;padding:15px 22px;background:#fff;border-bottom:1px solid var(--border);}
+  .back-to-list-btn{display:none;border:none;background:none;cursor:pointer;font-size:18px;}
+  .chat-user-info{display:flex;align-items:center;gap:11px;flex:1;}
+  .chat-avatar-container{position:relative;}
+  .chat-avatar{width:38px;height:38px;border-radius:10px;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12.5px;}
+  .chat-user-name{font-weight:700;font-size:14px;}
+  .chat-user-status{font-size:12px;color:var(--text-soft);}
+  .chat-action-btn{border:none;background:none;cursor:pointer;color:var(--text-soft);font-size:16px;}
+  .messages-container{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:4px;}
+  .message{display:flex;max-width:65%;margin-bottom:8px;position:relative;}
+  .message.me{align-self:flex-end;flex-direction:row-reverse;}
+  .message.them{align-self:flex-start;}
+  .message-bubble{background:#fff;border:1px solid var(--border);border-radius:14px;padding:9px 13px;}
+  .message.me .message-bubble{background:var(--grad);color:#fff;border:none;}
+  .message-text{font-size:13.5px;line-height:1.45;}
+  .message-timestamp{font-size:10.5px;opacity:.7;margin-top:3px;}
+  .delete-message-btn{border:none;background:#fff;border:1px solid var(--border);border-radius:50%;width:24px;height:24px;cursor:pointer;margin:0 6px;}
+  .message-input-area{display:flex;gap:10px;padding:15px 22px;background:#fff;border-top:1px solid var(--border);}
+  .message-input{flex:1;border:1px solid var(--border);border-radius:22px;padding:11px 18px;font-size:13.5px;outline:none;}
+  .send-btn{width:40px;height:40px;border-radius:50%;background:var(--grad);border:none;color:#fff;cursor:pointer;flex-shrink:0;}
+  .delete-modal-overlay{position:fixed;inset:0;background:rgba(15,17,30,.5);display:flex;align-items:center;justify-content:center;z-index:500;}
+  .delete-modal{background:#fff;border-radius:16px;padding:26px;width:340px;text-align:center;}
+  .delete-modal-title{font-size:16px;margin:0 0 8px;}
+  .delete-modal-text{font-size:13px;color:var(--text-soft);margin:0 0 18px;}
+  .delete-modal-buttons{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+  .delete-option-btn{border:1px solid var(--border);background:#fff;border-radius:11px;padding:11px 14px;cursor:pointer;text-align:left;}
+  .delete-option-title{display:block;font-weight:700;font-size:13px;}
+  .delete-option-desc{display:block;font-size:11.5px;color:var(--text-faint);}
+  .delete-modal-cancel-new{border:none;background:none;color:var(--text-soft);font-weight:600;font-size:13px;cursor:pointer;}
+
+  /* ===== Notifications (mirrors Notifications.jsx) ===== */
+  .notif-coming-soon-banner{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fbbf24;border-radius:12px;padding:13px 18px;margin-bottom:18px;font-size:13.5px;color:#92400e;}
+  .notifications-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+  .header-left{display:flex;align-items:center;gap:10px;}
+  .notifications-title{font-size:22px;margin:0;font-weight:800;}
+  .unread-count{background:var(--indigo);color:#fff;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;}
+  .mark-all-btn{display:flex;align-items:center;gap:7px;border:1px solid var(--border);background:#fff;padding:9px 15px;border-radius:11px;font-weight:600;font-size:12.5px;cursor:pointer;}
+  .notifications-filters{display:flex;gap:8px;margin-bottom:18px;}
+  .filter-btn{border:1px solid var(--border);background:#fff;border-radius:20px;padding:8px 15px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--text-soft);}
+  .filter-btn.active{background:var(--text);color:#fff;border-color:var(--text);}
+  .notification-group{margin-bottom:18px;}
+  .group-title{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--text-faint);margin-bottom:8px;}
+  .notification-item{display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--border);border-radius:13px;padding:13px 16px;margin-bottom:8px;cursor:pointer;position:relative;}
+  .notification-item.unread{background:#FAFAFF;border-color:#DEDCFB;}
+  .notif-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;}
+  .notif-icon.like{background:var(--pink-bg);color:#be185d;}
+  .notif-icon.reply{background:var(--indigo-bg);color:var(--indigo-deep);}
+  .notif-icon.pin{background:var(--orange-bg);color:#b45309;}
+  .notif-icon.member{background:var(--green-bg);color:#059669;}
+  .notif-icon.resource{background:var(--pink-bg);color:#be185d;}
+  .notif-content{flex:1;}
+  .notif-text{font-size:13px;}
+  .notif-user{font-weight:700;}
+  .notif-group{color:var(--indigo-deep);font-weight:700;}
+  .notif-preview{font-size:12.5px;color:var(--text-soft);margin-top:4px;}
+  .notif-timestamp{font-size:11px;color:var(--text-faint);margin-top:5px;}
+  .unread-dot{width:8px;height:8px;border-radius:50%;background:var(--indigo);position:absolute;top:15px;right:15px;}
+  .notifications-list .empty-state{text-align:center;padding:50px 20px;color:var(--text-soft);}
+
+  @media(max-width:1050px){
+    .groups-grid,.resources-grid,.tab-resource-grid{grid-template-columns:repeat(2,1fr);}
+    .profile-container,.study-feed-container{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="proto-bar">
+  <span class="label">Investor prototype</span>
+  <button class="proto-tab active" data-s="s1">1 · Select University</button>
+  <button class="proto-tab" data-s="s1b">1b · Connect LMS</button>
+  <button class="proto-tab" data-s="s2">1c · Match Modules</button>
+  <button class="proto-tab" data-s="s3">2 · My Study Groups</button>
+  <button class="proto-tab" data-s="s_find">Find Groups</button>
+  <button class="proto-tab" data-s="s_chat">Group Chat</button>
+  <button class="proto-tab" data-s="s4">My Resources</button>
+  <button class="proto-tab" data-s="s_search">Ask UniSekela</button>
+  <button class="proto-tab" data-s="s5">Profile & Planner</button>
+  <button class="proto-tab" data-s="s6">Home & Email</button>
+  <button class="proto-tab" data-s="s_messages">Messages</button>
+  <button class="proto-tab" data-s="s_notifications">Notifications</button>
+</div>
+
+<!-- ============ ONBOARDING STEP 1 : SELECT UNIVERSITY ============ -->
+<div class="screen active" id="s1">
+  <div class="partner-wrap">
+    <div class="partner-card">
+      <div class="onboard-step">Onboarding · Step 1 of 3</div>
+      <div class="partner-badge">🎓</div>
+      <h1>Which university are you at?</h1>
+      <p class="sub">UniSekela is built as an official partner layer for each university — not a scraper working around them. Pick your institution and we'll connect to their systems directly.</p>
+      <div class="uni-grid">
+        <div class="uni-row selected">
+          <div class="uni-logo" style="background:#0F172A;">SA</div>
+          <div class="meta"><strong>UNISA</strong><span>Live partner integration</span></div>
+          <span class="check-dot" style="margin-left:auto;">✓</span>
+        </div>
+        <div class="uni-row disabled">
+          <div class="uni-logo" style="background:#7A1F3D;">WITS</div>
+          <div class="meta"><strong>University of the Witwatersrand</strong><span>In partnership discussions</span></div>
+          <span class="pill pending" style="margin-left:auto;">Coming soon</span>
+        </div>
+        <div class="uni-row disabled">
+          <div class="uni-logo" style="background:#003B71;">UP</div>
+          <div class="meta"><strong>University of Pretoria</strong><span>On our roadmap</span></div>
+          <span class="pill pending" style="margin-left:auto;">Coming soon</span>
+        </div>
+      </div>
+      <button class="btn-primary" style="width:100%;" onclick="goTo('s1b')">Continue with UNISA</button>
+      <div class="partner-note">🤝 <strong>The vision:</strong> a UniSekela instance per university — UNISA UniSekela today, Wits UniSekela and beyond as we formalise partnerships.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ONBOARDING STEP 1b : CONNECT TO LMS ============ -->
+<div class="screen" id="s1b">
+  <div class="partner-wrap">
+    <div class="partner-card">
+      <div class="onboard-step">Onboarding · Step 2 of 3</div>
+      <div class="partner-badge">🔗</div>
+      <h1>Connect to myUnisa</h1>
+      <p class="sub">Securely connect your myUnisa account so UniSekela can read your enrolled modules, timetable and study materials.</p>
+      <div class="lms-connect-box" id="lmsConnectBox">
+        <div style="font-size:32px;margin-bottom:10px;">🎓</div>
+        <p style="font-size:13.5px;color:var(--text-soft);margin:0 0 18px;">You'll be asked to log in with your myUnisa credentials on the next screen (handled entirely by UNISA — UniSekela never stores your password).</p>
+        <button class="btn-primary" style="width:100%;" onclick="connectLMS()">Connect to myUnisa</button>
+      </div>
+      <div class="partner-note">🔒 This is a mocked step for the demo — in production this is a secure OAuth-style handoff to UNISA's own login page, the same way "Sign in with Google" works.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ONBOARDING STEP 2 (screen) : MATCH MODULES ============ -->
+<div class="screen" id="s2">
+  <div class="app-shell">
+    SIDEBAR::home
+    <div class="main-content">
+      <div class="onboard-step">Onboarding · Step 3 of 3</div>
+      <div class="match-hero">
+        <div class="match-icon">✨</div>
+        <div><h1 style="margin-top:2px;font-size:23px;">We matched your modules to study groups</h1></div>
+      </div>
+      <p style="color:var(--text-soft);font-size:13.5px;margin:6px 0 20px;">Based on the 6 modules on your UNISA record, here's what's active on UniSekela right now.</p>
+      <div class="match-list">
+        <div class="match-row"><div class="mod-chip" style="background:var(--indigo);">FAC</div><div class="info"><strong>FAC2601 — Financial Accounting</strong><span>1 active group · 6 members total</span></div><div class="check-dot">✓</div></div>
+        <div class="match-row"><div class="mod-chip" style="background:var(--orange);">MAC</div><div class="info"><strong>MAC2601 — Management Accounting</strong><span>1 active group · 6 members total</span></div><div class="check-dot">✓</div></div>
+        <div class="match-row"><div class="mod-chip" style="background:var(--purple);">MAC</div><div class="info"><strong>MAC2602 — Financial Management</strong><span>1 active group · 6 members total</span></div><div class="check-dot">✓</div></div>
+        <div class="match-row"><div class="mod-chip" style="background:var(--pink);">TAX</div><div class="info"><strong>TAX2601 — Taxation</strong><span>1 active group · 6 members total</span></div><div class="check-dot">✓</div></div>
+        <div class="match-row"><div class="mod-chip" style="background:var(--teal);">AIN</div><div class="info"><strong>AIN2601 — Auditing</strong><span>1 active group · 6 members total</span></div><div class="check-dot">✓</div></div>
+        <div class="match-row"><div class="mod-chip" style="background:var(--green);">AUE</div><div class="info"><strong>AUE2602 — Corporate Governance</strong><span>New module · no group yet</span></div><span class="pill pending">Start one?</span></div>
+      </div>
+      <div class="match-cta">
+        <div><strong>5 groups ready across your 6 modules</strong><span>Click below to see your groups.</span></div>
+        <button class="btn-primary" onclick="goTo('s3')">Find groups →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MY STUDY GROUPS ============ -->
+<div class="screen" id="s3">
+  <div class="app-shell">
+    SIDEBAR::groups
+    <div class="main-content">
+      <div class="groups-header">
+        <h1 class="groups-title">My Study Groups</h1>
+        <p class="groups-subtitle">Connect with focused study communities</p>
+      </div>
+      <div class="stats-container">
+        <div class="stat-card"><div class="stat-icon-wrap purple">👥</div><div><span class="stat-number" id="statActiveGroups">5</span><span class="stat-desc">Active Groups</span></div></div>
+        <div class="stat-card"><div class="stat-icon-wrap green">💬</div><div><span class="stat-number">0</span><span class="stat-desc">Unread Messages</span></div></div>
+        <div class="stat-card"><div class="stat-icon-wrap orange">📘</div><div><span class="stat-number">6</span><span class="stat-desc">Enrolled Modules</span></div></div>
+      </div>
+      <div class="groups-grid" id="myGroupsGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FIND GROUPS ============ -->
+<div class="screen" id="s_find">
+  <div class="app-shell">
+    SIDEBAR::find
+    <div class="main-content">
+      <div class="find-groups-container">
+        <div class="fg-header">
+          <h1 class="fg-title">🔎 Find Study Groups</h1>
+          <p class="fg-subtitle">Search by module code, e.g. FAC2601</p>
+        </div>
+        <div class="fg-search-box">
+          <span>🔍</span>
+          <input id="fgSearchInput" type="text" placeholder="Enter module code (e.g., FAC2601)" oninput="this.value=this.value.toUpperCase()" onkeypress="if(event.key==='Enter')fgSearch()">
+          <button class="btn-secondary" onclick="fgSearch()">Search</button>
+        </div>
+        <div id="fgResults"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ GROUP CHAT ============ -->
+<div class="screen" id="s_chat">
+  <div class="workspace-wrapper">
+    <header class="workspace-header">
+      <div class="header-brand">
+        <div class="brand-box" id="chatBrandBox">FAC</div>
+        <div class="brand-text">
+          <h3 id="chatTitle">FAC2601 Study Group</h3>
+          <p><span class="status-indicator"></span><span id="chatMemberCount">1 member</span> · Active now</p>
+        </div>
+      </div>
+      <div class="header-controls">
+        <button class="control-btn" onclick="goTo('s3')">← Back to groups</button>
+        <button class="control-btn">⚙ Settings</button>
+      </div>
+    </header>
+    <nav class="workspace-nav">
+      <button class="nav-link active" id="chatTabChat" onclick="switchChatTab('Chat')">Chat</button>
+      <button class="nav-link" id="chatTabResources" onclick="switchChatTab('Resources')">Resources</button>
+    </nav>
+    <div class="workspace-body">
+      <div class="chat-interface" id="chatPaneChat">
+        <div class="message-list" id="chatMessageList"></div>
+        <div class="input-footer">
+          <div class="input-pill">
+            <input id="chatInput" type="text" placeholder="Message the group" onkeypress="if(event.key==='Enter')sendChatMessage()">
+            <button class="send-circle" onclick="sendChatMessage()">➤</button>
+          </div>
+        </div>
+      </div>
+      <div id="chatPaneResources" style="display:none;">
+        <div class="group-tab-scroll-container">
+          <div class="tab-title-row">
+            <div>
+              <h2 class="tab-main-title" id="resTabTitle">📂 FAC2601 Resources</h2>
+              <p class="tab-subtitle-text">Shared by members · auto-synced by AI</p>
+            </div>
+            <span class="ai-sync-badge">✨ synced 2 min ago</span>
+          </div>
+          <div class="tab-search-filter-row">
+            <div class="tab-search-field-container"><span>🔍</span><input placeholder="Search group resources..."></div>
+            <div class="tab-filter-select-container"><select><option>All Types</option><option>Notes</option><option>Exam Paper</option><option>Assignment</option></select></div>
+          </div>
+          <p class="results-indicator" id="resTabCount">Showing 3 resources</p>
+          <div class="tab-resource-grid" id="resTabGrid"></div>
+          <div class="tab-bottom-nav">
+            <button class="view-library-btn" onclick="goTo('s4')">↗ View My Resources</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MY RESOURCES ============ -->
+<div class="screen" id="s4">
+  <div class="app-shell">
+    SIDEBAR::resources
+    <div class="main-content">
+      <div class="resources-page">
+        <header class="resources-header">
+          <div class="header-content">
+            <div class="header-text"><h1 class="resources-title">📚 My Resources</h1><p class="resources-subtitle">Auto-organised by module · 11 items</p></div>
+            <div class="ai-sync-badge">✨ AI synced 2 min ago — 3 new files sorted</div>
+          </div>
+        </header>
+        <div class="resources-controls">
+          <button class="filter-pill active">All modules</button>
+          <button class="filter-pill"><span class="indicator" style="background:var(--indigo);"></span> FAC2601</button>
+          <button class="filter-pill"><span class="indicator" style="background:var(--orange);"></span> MAC2601</button>
+          <button class="filter-pill"><span class="indicator" style="background:var(--purple);"></span> MAC2602</button>
+          <button class="filter-pill"><span class="indicator" style="background:var(--pink);"></span> TAX2601</button>
+          <button class="filter-pill"><span class="indicator" style="background:var(--teal);"></span> AIN2601</button>
+        </div>
+        <p class="results-status">Showing 11 resources</p>
+        <div class="resources-grid">
+          <div class="resource-card"><div class="resource-header"><span class="resource-type-badge" style="background:var(--orange-bg);color:#b45309;">Exam Paper</span><span class="ai-tag">✨ auto-tagged</span></div><h3 class="resource-name">MAC2601 — 2024 April Assessment 3 (QP)</h3><div class="resource-meta"><span class="resource-module">MAC2601</span><span class="resource-date">13/05/2026</span></div><div class="date-chip">📅 Assessment window: 23 Apr</div></div>
+          <div class="resource-card"><div class="resource-header"><span class="resource-type-badge" style="background:var(--green-bg);color:#059669;">Notes</span><span class="ai-tag">✨ auto-tagged</span></div><h3 class="resource-name">MAC2601 — Lesson 3: Sources & Forms of Finance</h3><div class="resource-meta"><span class="resource-module">MAC2601</span><span class="resource-date">25/03/2026</span></div></div>
+          <div class="resource-card"><div class="resource-header"><span class="resource-type-badge" style="background:var(--indigo-bg);color:var(--indigo-deep);">Assignment</span><span class="ai-tag">✨ auto-tagged</span></div><h3 class="resource-name">MAC2602 — Assignment 2, 2026 (Part 5.2)</h3><div class="resource-meta"><span class="resource-module">MAC2602</span><span class="resource-date">Today</span></div><div class="date-chip">📅 Due 30 Aug</div></div>
+          <div class="resource-card"><div class="resource-header"><span class="resource-type-badge" style="background:var(--orange-bg);color:#b45309;">Exam Paper</span><span class="ai-tag">✨ auto-tagged</span></div><h3 class="resource-name">MAC2601 — 2025 Mock Exam Paper</h3><div class="resource-meta"><span class="resource-module">MAC2601</span><span class="resource-date">23/04/2026</span></div></div>
+          <div class="resource-card"><div class="resource-header"><span class="resource-type-badge" style="background:var(--green-bg);color:#059669;">Notes</span><span class="ai-tag">✨ auto-tagged</span></div><h3 class="resource-name">TAX2601 — Provisional Tax & CGT Summary</h3><div class="resource-meta"><span class="resource-module">TAX2601</span><span class="resource-date">07/06/2026</span></div></div>
+          <div class="resource-card"><div class="resource-header"><span class="resource-type-badge" style="background:var(--pink-bg);color:#be185d;">PDF</span><span class="ai-tag">✨ auto-tagged</span></div><h3 class="resource-name">AIN2601 — Study Guide Chapter 4</h3><div class="resource-meta"><span class="resource-module">AIN2601</span><span class="resource-date">17/06/2026</span></div></div>
+        </div>
+        <p style="text-align:center;color:var(--text-faint);font-size:12px;margin-top:20px;">No upload button needed — files synced from UNISA and email are sorted here automatically.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ASK UNISEKELA (AI SEARCH) ============ -->
+<div class="screen" id="s_search">
+  <div class="app-shell">
+    SIDEBAR::search
+    <div class="main-content">
+      <div class="ai-search-page">
+        <h1 class="ai-search-title">🔍 Ask UniSekela Anything</h1>
+        <div class="ai-search-box">
+          <span>✨</span>
+          <input id="aiSearchInput" type="text" placeholder="What's my current standing in MAC2601?" onkeypress="if(event.key==='Enter')runAiSearch()">
+          <button class="btn-primary" onclick="runAiSearch()">Ask</button>
+        </div>
+        <div class="ai-example-row">
+          <button class="ai-example-chip" onclick="fillAiExample(`What's my current standing in MAC2601?`)">What's my current standing in MAC2601?</button>
+          <button class="ai-example-chip" onclick="fillAiExample(`What do I need on the exam to pass TAX2601?`)">What do I need to pass TAX2601?</button>
+          <button class="ai-example-chip" onclick="fillAiExample(`Find me notes on IFRS 16 leases`)">Find me notes on IFRS 16 leases</button>
+        </div>
+        <div id="aiResultArea"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PROFILE + PLANNER ============ -->
+<div class="screen" id="s5">
+  <div class="app-shell">
+    SIDEBAR::profile
+    <div class="main-content">
+      <div class="profile-container">
+        <div>
+          <div class="profile-page">
+            <div class="profile-banner"></div>
+            <div class="profile-main">
+              <div class="profile-avatar-section"><div class="profile-avatar">SN</div></div>
+              <h1 class="profile-name">Simangele Nxumalo</h1>
+              <p class="profile-username">@simangele_nxumalo</p>
+            </div>
+            <div class="profile-bio">
+              <p class="bio-text">BCompt Accounting Science student passionate about finance and economics. Love collaborating on assignments and helping fellow students succeed!</p>
+              <div class="bio-details">
+                <div class="bio-detail">🎓 BCompt Accounting Science</div>
+                <div class="bio-detail">🏫 UNISA</div>
+                <div class="bio-detail">📍 Durban, South Africa</div>
+              </div>
+            </div>
+            <div class="profile-tabs">
+              <button class="tab-btn active">Posts</button>
+              <button class="tab-btn">Replies</button>
+              <button class="tab-btn">Likes</button>
+              <button class="tab-btn">Saved</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="side-card">
+            <h3>📅 Study Planner <span class="pill ai">AI synced</span></h3>
+            <div class="planner-item"><div class="planner-bar" style="background:var(--orange);"></div><div class="planner-date"><div class="d">23</div><div class="m">Aug</div></div><div class="planner-info"><strong>MAC2601 Assessment 3 due</strong><div class="planner-src">✨ from resource PDF</div></div></div>
+            <div class="planner-item"><div class="planner-bar" style="background:var(--indigo);"></div><div class="planner-date"><div class="d">30</div><div class="m">Aug</div></div><div class="planner-info"><strong>MAC2602 Assignment 2 due</strong><div class="planner-src">✨ from resource PDF</div></div></div>
+            <div class="planner-item"><div class="planner-bar" style="background:var(--teal);"></div><div class="planner-date"><div class="d">03</div><div class="m">Sep</div></div><div class="planner-info"><strong>FAC2601 lecture: IFRS 16 Leases</strong><div class="planner-src">✨ from UNISA timetable</div></div></div>
+            <div class="planner-item"><div class="planner-bar" style="background:var(--pink);"></div><div class="planner-date"><div class="d">11</div><div class="m">Sep</div></div><div class="planner-info"><strong>TAX2601 exam</strong><div class="planner-src">✨ from Outlook email</div></div></div>
+          </div>
+          <div class="side-card">
+            <h3>Academic Snapshot</h3>
+            <div class="snapshot-row"><span>🎓 Modules Enrolled</span><span>6</span></div>
+            <div class="snapshot-row"><span>👥 Study Groups Joined</span><span>5</span></div>
+            <div class="snapshot-row"><span>📖 Resources Synced</span><span>11</span></div>
+            <div class="snapshot-row"><span>📅 Upcoming Deadlines</span><span>4</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ HOME (STUDY FEED / MY EMAIL) ============ -->
+<div class="screen" id="s6">
+  <div class="app-shell">
+    SIDEBAR::home
+    <div class="main-content">
+      <div class="study-feed-container">
+        <div>
+          <div class="feed-header"><h1 class="feed-title">Home</h1><p class="feed-subtitle">Your study feed, your inbox, one place.</p></div>
+          <div class="feed-toggle">
+            <button class="active" onclick="showFeed('feed', this)">Study Feed</button>
+            <button onclick="showFeed('mail', this)">My Email</button>
+          </div>
+          <div id="feedView">
+            <div class="post-card"><div class="post-author"><div class="author-avatar" style="background:var(--orange);">TM</div><div><span class="author-name">Thabo M. · MAC2601 Study Group 1</span><span class="author-time">2 hours ago</span></div></div><div class="post-content"><p>Does anyone have working for the high-low method question in Assessment 3? Stuck on the fixed cost split.</p></div></div>
+            <div class="post-card"><div class="post-author"><div class="author-avatar">✨</div><div><span class="author-name">UniSekela AI</span><span class="author-time">Today</span></div></div><div class="post-content"><p>Your MAC2602 Assignment 2 is due in 3 weeks. I've added it to your planner and matched it with 4 relevant notes in My Resources.</p></div></div>
+            <div class="post-card"><div class="post-author"><div class="author-avatar" style="background:var(--pink);">NP</div><div><span class="author-name">Nomvula P. · TAX2601 Study Group 1</span><span class="author-time">Yesterday</span></div></div><div class="post-content"><p>Sharing my provisional tax summary sheet in resources — hope it helps before the exam.</p></div></div>
+          </div>
+          <div id="mailView" style="display:none;"></div>
+        </div>
+
+        <div class="activity-panel-widget">
+          <div class="side-card" style="margin-bottom:0;">
+            <h3>📅 This week</h3>
+            <div class="planner-item"><div class="planner-bar" style="background:var(--pink);"></div><div class="planner-date"><div class="d">11</div><div class="m">Sep</div></div><div class="planner-info"><strong>TAX2601 exam</strong><div class="planner-src">✨ from email</div></div></div>
+            <div class="planner-item"><div class="planner-bar" style="background:var(--indigo);"></div><div class="planner-date"><div class="d">30</div><div class="m">Aug</div></div><div class="planner-info"><strong>MAC2602 Assignment 2 due</strong><div class="planner-src">✨ from resource</div></div></div>
+          </div>
+
+          <div class="ap-section">
+            <div class="ap-section-header"><h3 class="ap-section-title">💬 Recent Group Activity</h3></div>
+            <div class="ap-activity-list">
+              <div class="ap-activity-item" onclick="openGroupChat('MAC2601')">
+                <div class="ap-activity-header"><span class="ap-activity-group" style="color:var(--orange);">MAC2601</span><span class="ap-activity-time">12 min ago</span></div>
+                <p class="ap-activity-message"><strong>Thabo:</strong> Does anyone have working for the high...</p>
+              </div>
+              <div class="ap-activity-item" onclick="openGroupChat('TAX2601')">
+                <div class="ap-activity-header"><span class="ap-activity-group" style="color:var(--pink);">TAX2601</span><span class="ap-activity-time">1h ago</span></div>
+                <p class="ap-activity-message"><strong>Nomvula:</strong> Sharing my provisional tax summary...</p>
+              </div>
+              <div class="ap-activity-item" onclick="openGroupChat('FAC2601')">
+                <div class="ap-activity-header"><span class="ap-activity-group" style="color:var(--indigo);">FAC2601</span><span class="ap-activity-time">3h ago</span></div>
+                <p class="ap-activity-message"><strong>Lindiwe:</strong> Anyone free for a call before Thursday?</p>
+              </div>
+            </div>
+            <button class="ap-view-all-btn" onclick="goTo('s3')">View All Groups</button>
+          </div>
+
+          <div class="ap-section">
+            <div class="ap-section-header"><h3 class="ap-section-title">📄 New Resources</h3></div>
+            <div class="ap-resources-list">
+              <div class="ap-resource-item" onclick="goTo('s4')">
+                <span class="ap-resource-icon">📄</span>
+                <div class="ap-resource-info"><div class="ap-resource-header"><span class="ap-resource-module">MAC2602</span><span class="ap-resource-time">10 min ago</span></div><p class="ap-resource-name">Assignment 2 marking rubric</p></div>
+              </div>
+              <div class="ap-resource-item" onclick="goTo('s4')">
+                <span class="ap-resource-icon">📝</span>
+                <div class="ap-resource-info"><div class="ap-resource-header"><span class="ap-resource-module">TAX2601</span><span class="ap-resource-time">2h ago</span></div><p class="ap-resource-name">Provisional Tax & CGT Summary</p></div>
+              </div>
+              <div class="ap-resource-item" onclick="goTo('s4')">
+                <span class="ap-resource-icon">📄</span>
+                <div class="ap-resource-info"><div class="ap-resource-header"><span class="ap-resource-module">AIN2601</span><span class="ap-resource-time">Yesterday</span></div><p class="ap-resource-name">Study Guide Chapter 4</p></div>
+              </div>
+            </div>
+            <button class="ap-view-all-btn" onclick="goTo('s4')">View All Resources</button>
+          </div>
+
+          <div class="ap-tip-box"><span class="ap-tip-icon">💡</span><p class="ap-tip-text">Click any activity to jump straight into that group's chat, or a resource to open the file.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MESSAGES ============ -->
+<div class="screen" id="s_messages">
+  <div class="app-shell">
+    SIDEBAR::messages
+    <div class="main-content" style="padding:0;">
+      <div class="messages-page">
+        <div class="conversations-sidebar" id="convSidebar">
+          <div class="sidebar-header">
+            <h2 class="sidebar-title">💬 Messages</h2>
+            <p class="sidebar-subtitle" id="convSubtitle">5 students on UniSekela</p>
+          </div>
+          <div class="search-bar"><span class="search-icon">🔍</span><input class="search-input" id="convSearchInput" placeholder="Search students or courses..." oninput="renderConversationsList()"></div>
+          <div class="conversations-list" id="conversationsList"></div>
+        </div>
+        <div class="chat-area" id="dmChatArea">
+          <div class="empty-chat-state">
+            <div class="empty-icon">💬</div>
+            <h3>Select a student to message</h3>
+            <p>Connect with any student on UniSekela</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ NOTIFICATIONS ============ -->
+<div class="screen" id="s_notifications">
+  <div class="app-shell">
+    SIDEBAR::notifications
+    <div class="main-content">
+      <div class="notifications-page">
+        <div class="notif-coming-soon-banner">🔔 <span><strong>Coming Soon:</strong> Real-time notifications will be enabled after MVP launch!</span></div>
+        <div class="notifications-header">
+          <div class="header-left"><h1 class="notifications-title">🔔 Notifications</h1><span class="unread-count" id="unreadCountPill">3 new</span></div>
+          <button class="mark-all-btn" onclick="markAllRead()">✓ Mark all read</button>
+        </div>
+        <div class="notifications-filters" id="notifFilters">
+          <button class="filter-btn active" data-f="All" onclick="setNotifFilter('All')">All</button>
+          <button class="filter-btn" data-f="Unread" onclick="setNotifFilter('Unread')">Unread</button>
+          <button class="filter-btn" data-f="Mentions" onclick="setNotifFilter('Mentions')">Mentions</button>
+          <button class="filter-btn" data-f="Group Updates" onclick="setNotifFilter('Group Updates')">Group Updates</button>
+        </div>
+        <div class="notifications-list" id="notificationsList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= SHARED STATE ================= */
+const ALL_COURSE_MODULES = ['AIN1501','BNU1501','CAS1501','CBC1501','CLA1503','DSC1630','ECS1501','FAC1502','FAC1601','IOP1501','MNB1501',
+  'AIN2601','AUE2601','AUE2602','ECS1601','FAC2601','FAC2602','MAC2601','MAC2602','TAX2601',
+  'AIN3701','AUE3761','CAS3701','FAC3764','MAC3761','TAX3761'];
+
+const MODULE_NAMES = {
+  FAC2601:'Financial Accounting for Companies', MAC2601:'Principles of Management Accounting',
+  MAC2602:'Principles of Strategy, Risk & Financial Management', TAX2601:'Principles of Taxation',
+  AIN2601:'Practical Accounting Data Processing', AUE2602:'Corporate Governance in Accountancy',
+  AUE2601:'Auditing Theory and Practice'
+};
+const MODULE_COLORS = {FAC2601:'var(--indigo)',MAC2601:'var(--orange)',MAC2602:'var(--purple)',TAX2601:'var(--pink)',AIN2601:'var(--teal)',AUE2602:'var(--green)'};
+
+const state = {
+  enrolledModules: ['FAC2601','MAC2601','MAC2602','TAX2601','AIN2601','AUE2602'],
+  userGroupOf: { FAC2601:1, MAC2601:1, MAC2602:1, TAX2601:1, AIN2601:1, AUE2602:1 },
+  groupsCatalog: {
+    FAC2601:[{num:1,members:1,max:6}],
+    MAC2601:[{num:1,members:1,max:6},{num:2,members:0,max:6}],
+    MAC2602:[{num:1,members:1,max:6}],
+    TAX2601:[{num:1,members:1,max:6}],
+    AIN2601:[{num:1,members:1,max:6}],
+    AUE2602:[{num:1,members:1,max:6}]
+  },
+  outlookConnected:false,
+  currentChatModule:'FAC2601'
+};
+
+const chatMessages = {
+  FAC2601:[
+    {own:false,author:'Lindiwe K.',avatar:'LK',color:'var(--indigo)',content:"Anyone free for a call before Thursday's test?"},
+    {own:true,content:"I'm free after 5pm, want to do a quick Zoom?"}
+  ],
+  MAC2601:[
+    {own:false,author:'Thabo M.',avatar:'TM',color:'var(--orange)',content:'Does anyone have working for the high-low method question in Assessment 3? Stuck on the fixed cost split.'},
+    {own:true,content:"I'll share my working tonight, give me an hour"}
+  ],
+  MAC2602:[{own:false,author:'Karabo S.',avatar:'KS',color:'var(--purple)',content:'Rubric for Assignment 2 is in Resources now 👀'}],
+  TAX2601:[{own:false,author:'Nomvula P.',avatar:'NP',color:'var(--pink)',content:'Sharing my provisional tax summary sheet in resources — hope it helps before the exam.'}],
+  AIN2601:[{own:false,author:'Zanele M.',avatar:'ZM',color:'var(--teal)',content:'Study guide chapter 4 uploaded, covers the audit trail section well.'}]
+};
+
+const groupResources = {
+  FAC2601:[{type:'Notes',color:'var(--green-bg)',tcolor:'#059669',name:'IFRS 16 Leases summary',date:'2 days ago',by:'Lindiwe K.'},{type:'Exam Paper',color:'var(--orange-bg)',tcolor:'#b45309',name:'2025 Mock Exam',date:'1 week ago',by:'You'},{type:'Assignment',color:'var(--indigo-bg)',tcolor:'var(--indigo-deep)',name:'Assignment 1 marking guide',date:'2 weeks ago',by:'Sipho N.'}],
+  MAC2601:[{type:'Exam Paper',color:'var(--orange-bg)',tcolor:'#b45309',name:'2024 April Assessment 3 (QP)',date:'13/05/2026',by:'You'},{type:'Notes',color:'var(--green-bg)',tcolor:'#059669',name:'Lesson 3: Sources & Forms of Finance',date:'25/03/2026',by:'Thabo M.'},{type:'Exam Paper',color:'var(--orange-bg)',tcolor:'#b45309',name:'2025 Mock Exam Paper',date:'23/04/2026',by:'You'}],
+  MAC2602:[{type:'Assignment',color:'var(--indigo-bg)',tcolor:'var(--indigo-deep)',name:'Assignment 2, 2026 (Part 5.2)',date:'Today',by:'Karabo S.'}],
+  TAX2601:[{type:'Notes',color:'var(--green-bg)',tcolor:'#059669',name:'Provisional Tax & CGT Summary',date:'07/06/2026',by:'Nomvula P.'}],
+  AIN2601:[{type:'PDF',color:'var(--pink-bg)',tcolor:'#be185d',name:'Study Guide Chapter 4',date:'17/06/2026',by:'Zanele M.'}]
+};
+
+/* ================= SIDEBAR ================= */
+function sidebarHTML(active){
+  const items=[['home','🏠','Home'],['search','🔍','Search'],['groups','👥','My Groups'],['messages','💬','Messages'],['notifications','🔔','Notifications'],['profile','👤','Profile'],['resources','📖','My Resources'],['find','🎯','Find Groups']];
+  let nav=items.map(([k,i,l])=>`<button class="nav-item ${active===k?'active':''}" onclick="navClick('${k}')">${i} <span>${l}</span></button>`).join('');
+  let groupList=state.enrolledModules.map(m=>`<button class="sidebar-group-item" onclick="openGroupChat('${m}')"><span class="indicator" style="background:${MODULE_COLORS[m]}"></span>${m}</button>`).join('');
+  return `<div class="sidebar">
+    <div class="logo">🎓 UniSekela</div>
+    <div class="sidebar-nav">${nav}</div>
+    <div class="sidebar-section"><p class="section-label">My Study Groups</p><div class="sidebar-groups-list">${groupList}</div></div>
+    <div class="sidebar-footer"><button class="profile-pill" onclick="navClick('profile')"><div class="avatar">SN</div><div class="user-meta"><span class="u-name">Simangele Nxumalo</span><span class="u-status">● Online</span></div></button></div>
+  </div>`;
+}
+function navClick(key){
+  const map={home:'s6',search:'s_search',groups:'s3',messages:'s_messages',notifications:'s_notifications',profile:'s5',resources:'s4',find:'s_find'};
+  goTo(map[key]||'s6');
+}
+document.querySelectorAll('.screen').forEach(s=>{
+  s.innerHTML = s.innerHTML
+    .replace('SIDEBAR::home', sidebarHTML('home'))
+    .replace('SIDEBAR::groups', sidebarHTML('groups'))
+    .replace('SIDEBAR::resources', sidebarHTML('resources'))
+    .replace('SIDEBAR::profile', sidebarHTML('profile'))
+    .replace('SIDEBAR::find', sidebarHTML('find'))
+    .replace('SIDEBAR::search', sidebarHTML('search'))
+    .replace('SIDEBAR::messages', sidebarHTML('messages'))
+    .replace('SIDEBAR::notifications', sidebarHTML('notifications'));
+});
+
+/* ================= SCREEN NAV ================= */
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.proto-tab').forEach(t=>t.classList.remove('active'));
+  const tab=document.querySelector(`.proto-tab[data-s="${id}"]`);
+  if(tab) tab.classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='s3') renderMyGroups();
+  if(id==='s6') renderMailBox();
+  if(id==='s_messages') renderConversationsList();
+  if(id==='s_notifications') renderNotifications();
+}
+document.querySelectorAll('.proto-tab').forEach(t=>t.addEventListener('click',()=>goTo(t.dataset.s)));
+
+/* ================= ONBOARDING ================= */
+function connectLMS(){
+  const box=document.getElementById('lmsConnectBox');
+  box.innerHTML = `<div class="spinner"></div><p style="font-size:13.5px;color:var(--text-soft);">Connecting to myUnisa...</p>`;
+  setTimeout(()=>{ goTo('s2'); }, 1100);
+}
+
+/* ================= MY STUDY GROUPS (dynamic) ================= */
+function renderMyGroups(){
+  const grid=document.getElementById('myGroupsGrid');
+  let html='';
+  let activeCount=0;
+  state.enrolledModules.forEach(mod=>{
+    let groupNum = state.userGroupOf[mod];
+    let catalog = state.groupsCatalog[mod]||[];
+    if(!groupNum){
+      // Every enrolled module always has a group — auto-create Group 1 if somehow missing
+      if(catalog.length===0){ catalog=[{num:1,members:1,max:6}]; state.groupsCatalog[mod]=catalog; }
+      groupNum = catalog[0].num;
+      state.userGroupOf[mod] = groupNum;
+    }
+    const g = catalog.find(x=>x.num===groupNum) || {num:groupNum,members:1,max:6};
+    activeCount++;
+    const desc = g.members<=1
+      ? "You're the first one here — we'll notify you the moment classmates join"
+      : `Collaborate with ${g.members} members · afternoon study sessions`;
+    html+=`<div class="group-card">
+      <div class="avatar-box"><div class="avatar-main">${mod.substring(0,3)}</div><div class="badge-float">${g.num}</div></div>
+      <h3 class="group-id">${mod}</h3><p class="group-full-name">${mod} Study Group ${g.num}</p>
+      <p class="group-description">${desc}</p>
+      <div class="card-footer-meta"><span class="meta-info">👤 ${g.members}/${g.max}</span><span class="meta-info">● Active</span></div>
+      <button class="open-btn" onclick="openGroupChat('${mod}')">Open Chat</button>
+    </div>`;
+  });
+  document.getElementById('statActiveGroups').textContent = activeCount;
+  grid.innerHTML = html;
+}
+
+/* ================= FIND GROUPS ================= */
+function fgSearch(){
+  const raw = document.getElementById('fgSearchInput').value.trim().toUpperCase();
+  const resultsEl = document.getElementById('fgResults');
+  if(!raw){ resultsEl.innerHTML=''; return; }
+
+  if(!ALL_COURSE_MODULES.includes(raw)){
+    showFgModal('warning','⚠️ Module Not Available', `<strong>${raw}</strong> is not part of the Bachelor of Accounting Sciences program.<br><br>You can only join groups for modules in your enrolled course.`, [
+      {label:'Got It', cls:'confirm', action:()=>{ closeFgModal(); document.getElementById('fgSearchInput').value=''; resultsEl.innerHTML=''; }}
+    ]);
+    return;
+  }
+
+  const isEnrolled = state.enrolledModules.includes(raw);
+  if(!isEnrolled){
+    resultsEl.innerHTML = `<div class="fg-not-enrolled-card">
+      <h3 class="fg-not-enrolled-title">You're not currently enrolled in ${raw}</h3>
+      <button class="fg-add-module-btn" onclick="fgAddModule('${raw}')">➕ Add Module</button>
+    </div>`;
+    return;
+  }
+
+  renderFgGroupList(raw);
+}
+
+function renderFgGroupList(mod){
+  const resultsEl = document.getElementById('fgResults');
+  const groups = state.groupsCatalog[mod] || [];
+  const myGroupNum = state.userGroupOf[mod];
+  if(groups.length===0){
+    resultsEl.innerHTML = `<h2 class="fg-results-title">${mod} Study Groups</h2><div class="fg-not-enrolled-card"><h3 class="fg-not-enrolled-title">No groups found yet — be the first to start one!</h3>
+      <button class="fg-add-module-btn" onclick="fgStartFirstGroup('${mod}')">⭐ Start Group 1</button></div>`;
+    return;
+  }
+  let rows = groups.map(g=>{
+    const isCurrent = g.num===myGroupNum;
+    const isEmpty = g.members===0;
+    const isFull = g.members>=g.max;
+    let badge = isCurrent?'<div class="fg-current-badge">🟢 Current Group</div>' : isEmpty?'<div class="fg-empty-badge">🟡 Empty</div>' : isFull?'<div class="fg-full-badge">Full</div>' : '<span></span>';
+    let btn = (!isCurrent && !isFull) ? `<button class="fg-group-btn" onclick="fgJoinClick('${mod}',${g.num})">${myGroupNum?'Switch Group':'Join Group'}</button>` : '';
+    return `<div class="fg-group-card"><div class="fg-group-header"><h3 class="fg-group-title">Group #${g.num}</h3><span class="fg-group-members">${g.members}/${g.max} members</span></div><div class="fg-group-footer">${badge}${btn}</div></div>`;
+  }).join('');
+  resultsEl.innerHTML = `<h2 class="fg-results-title">${mod} Study Groups</h2><div class="fg-groups-list">${rows}</div>`;
+}
+
+function fgJoinClick(mod, groupNum){
+  const currentGroupNum = state.userGroupOf[mod];
+  const targetGroup = state.groupsCatalog[mod].find(g=>g.num===groupNum);
+  if(currentGroupNum){
+    showFgModal('switch','🔄 Switch Study Group', `You are currently in <strong>Group #${currentGroupNum}</strong>.<br><br>Switching will move you to <strong>Group #${groupNum}</strong>. Continue?`, [
+      {label:'Cancel', cls:'cancel', action:closeFgModal},
+      {label:'Switch Group', cls:'confirm', action:()=>{ fgDoJoin(mod, groupNum); closeFgModal(); }}
+    ]);
+    return;
+  }
+  if(targetGroup.members===0){
+    showFgModal('first','⭐ Be the First Member', `No one has joined this group yet.<br><br>Be the first to join and start the conversation for <strong>${mod}</strong>. Other students will join soon!`, [
+      {label:'Cancel', cls:'cancel', action:closeFgModal},
+      {label:'Join Group', cls:'confirm', action:()=>{ fgDoJoin(mod, groupNum); closeFgModal(); }}
+    ]);
+    return;
+  }
+  fgDoJoin(mod, groupNum);
+}
+
+function fgDoJoin(mod, groupNum){
+  const g = state.groupsCatalog[mod].find(x=>x.num===groupNum);
+  const prevNum = state.userGroupOf[mod];
+  if(prevNum){
+    const prevG = state.groupsCatalog[mod].find(x=>x.num===prevNum);
+    if(prevG) prevG.members = Math.max(0, prevG.members-1);
+  }
+  g.members += 1;
+  state.userGroupOf[mod] = groupNum;
+  renderFgGroupList(mod);
+}
+
+function fgStartFirstGroup(mod){
+  state.groupsCatalog[mod] = [{num:1,members:1,max:6}];
+  state.userGroupOf[mod] = 1;
+  renderFgGroupList(mod);
+}
+
+function fgAddModule(mod){
+  showFgModal('add','➕ Add Module', `Add <strong>${mod}</strong> to your profile?<br><br>This lets you join study groups and access shared resources for it.`, [
+    {label:'Cancel', cls:'cancel', action:closeFgModal},
+    {label:'Add Module', cls:'confirm', action:()=>{
+      if(!state.enrolledModules.includes(mod)) state.enrolledModules.push(mod);
+      if(!state.groupsCatalog[mod]) state.groupsCatalog[mod]=[];
+      if(!(mod in state.userGroupOf)) state.userGroupOf[mod]=null;
+      closeFgModal();
+      document.getElementById('fgSearchInput').value = mod;
+      renderFgGroupList(mod);
+    }}
+  ]);
+}
+
+function showFgModal(iconClass,title,text,actions){
+  closeFgModal();
+  const overlay=document.createElement('div');
+  overlay.className='fg-modal-overlay';
+  overlay.id='fgModalOverlay';
+  const iconMap={warning:'⚠️',switch:'🔄',first:'⭐',add:'➕'};
+  const btns = actions.map((a,i)=>`<button class="fg-modal-btn ${a.cls}" data-idx="${i}">${a.label}</button>`).join('');
+  overlay.innerHTML = `<div class="fg-modal"><div class="fg-modal-icon ${iconClass}">${iconMap[iconClass]||''}</div><h3 class="fg-modal-title">${title}</h3><p class="fg-modal-text">${text}</p><div class="${actions.length>1?'fg-modal-actions':'fg-modal-actions-single'}">${btns}</div></div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelectorAll('.fg-modal-btn').forEach((btn,i)=>btn.addEventListener('click',actions[i].action));
+  overlay.addEventListener('click',(e)=>{ if(e.target===overlay) closeFgModal(); });
+}
+function closeFgModal(){ const el=document.getElementById('fgModalOverlay'); if(el) el.remove(); }
+
+/* ================= GROUP CHAT ================= */
+let currentChatTab = 'Chat';
+function openGroupChat(mod){
+  state.currentChatModule = mod;
+  document.getElementById('chatBrandBox').textContent = mod.substring(0,3);
+  document.getElementById('chatTitle').textContent = mod + ' Study Group';
+  const g = (state.groupsCatalog[mod]||[]).find(x=>x.num===state.userGroupOf[mod]);
+  document.getElementById('chatMemberCount').textContent = (g? g.members : 1) + ' members';
+  document.getElementById('resTabTitle').textContent = '📂 ' + mod + ' Resources';
+  switchChatTab('Chat');
+  if(!chatMessages[mod] || chatMessages[mod].length===0){
+    chatMessages[mod] = [{own:false, author:'UniSekela AI', avatar:'✨', color:'var(--indigo)',
+      content:`You're the first student registered for ${mod} Study Group ${g?g.num:1}. We'll notify you the moment classmates join — feel free to drop notes or questions for when they do.`}];
+  }
+  renderChatMessages();
+  renderGroupResourcesTab();
+  goTo('s_chat');
+}
+function renderChatMessages(){
+  const list = document.getElementById('chatMessageList');
+  const msgs = chatMessages[state.currentChatModule] || [];
+  if(msgs.length===0){ list.innerHTML = `<div class="empty-state">📚<br>Start the discussion</div>`; return; }
+  list.innerHTML = msgs.map(m=>{
+    if(m.own){
+      return `<div class="message-row own"><div class="message-details"><div class="text-bubble-wrapper"><div class="text-bubble">${m.content}</div></div></div></div>`;
+    }
+    return `<div class="message-row"><div class="user-icon" style="background:${m.color}">${m.avatar}</div><div class="message-details"><div class="user-label">${m.author}</div><div class="text-bubble-wrapper"><div class="text-bubble">${m.content}</div></div></div></div>`;
+  }).join('');
+  list.scrollTop = list.scrollHeight;
+}
+function sendChatMessage(){
+  const input = document.getElementById('chatInput');
+  const val = input.value.trim();
+  if(!val) return;
+  if(!chatMessages[state.currentChatModule]) chatMessages[state.currentChatModule]=[];
+  chatMessages[state.currentChatModule].push({own:true, content:val});
+  input.value='';
+  renderChatMessages();
+}
+function switchChatTab(tab){
+  currentChatTab = tab;
+  document.getElementById('chatTabChat').classList.toggle('active', tab==='Chat');
+  document.getElementById('chatTabResources').classList.toggle('active', tab==='Resources');
+  document.getElementById('chatPaneChat').style.display = tab==='Chat' ? 'flex' : 'none';
+  document.getElementById('chatPaneResources').style.display = tab==='Resources' ? 'block' : 'none';
+}
+function renderGroupResourcesTab(){
+  const items = groupResources[state.currentChatModule] || [];
+  document.getElementById('resTabCount').textContent = `Showing ${items.length} resources`;
+  document.getElementById('resTabGrid').innerHTML = items.map(r=>`
+    <div class="tab-card-item">
+      <div class="resource-card">
+        <div class="resource-header"><span class="resource-type-badge" style="background:${r.color};color:${r.tcolor};">${r.type}</span></div>
+        <h3 class="resource-name">${r.name}</h3>
+        <div class="resource-meta"><span class="resource-date">${r.date}</span></div>
+      </div>
+      <span class="tab-uploaded-label">Uploaded by ${r.by}</span>
+    </div>`).join('');
+}
+
+/* ================= AI SEARCH ================= */
+function fillAiExample(text){
+  document.getElementById('aiSearchInput').value = text;
+  runAiSearch();
+}
+function runAiSearch(){
+  const q = document.getElementById('aiSearchInput').value.trim();
+  const area = document.getElementById('aiResultArea');
+  if(!q){ area.innerHTML=''; return; }
+
+  if(/standing|pass|distinction|MAC2601|exam/i.test(q)){
+    area.innerHTML = `
+    <div class="ai-response-card">
+      <div class="ai-response-header">📊 Your MAC2601 Performance Summary</div>
+      <table class="marks-table">
+        <tr><td>Assignment 1</td><td>68% <span style="color:var(--text-faint);font-weight:400;">(15%)</span></td></tr>
+        <tr><td>Assignment 2</td><td>72% <span style="color:var(--text-faint);font-weight:400;">(15%)</span></td></tr>
+        <tr><td>Test 1</td><td>65% <span style="color:var(--text-faint);font-weight:400;">(30%)</span></td></tr>
+        <tr><td>Exam</td><td style="color:var(--text-faint);">Not yet written (40%)</td></tr>
+      </table>
+      <div class="ai-callout"><strong>Current overall:</strong> 67.5%</div>
+      <div class="ai-callout" style="background:var(--green-bg);"><strong style="color:#059669;">To pass (50%):</strong> you need at least <strong>24%</strong> on the exam</div>
+      <div class="ai-callout" style="background:var(--orange-bg);"><strong style="color:#b45309;">For a distinction (75%):</strong> you need at least <strong>86%</strong> on the exam</div>
+      <p style="font-size:13px;font-weight:700;margin:16px 0 6px;">Exam prep recommendations</p>
+      <ul class="ai-recommend-list">
+        <li>Focus on Section C — your weakest area based on Test 1</li>
+        <li>Past papers show heavy weighting on Units 4–6 of your study guide</li>
+        <li>Join tonight's revision session in MAC2601 Study Group 1</li>
+      </ul>
+      <div class="ai-response-actions">
+        <button class="btn-secondary" onclick="openGroupChat('MAC2601')">Open MAC2601 group</button>
+        <button class="btn-secondary">Export as PDF</button>
+      </div>
+    </div>`;
+    return;
+  }
+
+  area.innerHTML = `<div class="ai-response-card">
+    <div class="ai-response-header">📄 Matching resources for "${q}"</div>
+    <p style="font-size:13.5px;color:var(--text-soft);line-height:1.6;">I found 2 notes that mention this topic. In the full product this pulls straight from your auto-organised My Resources library and ranks by relevance.</p>
+    <div class="tab-resource-grid" style="margin-top:14px;">
+      <div class="resource-card"><div class="resource-header"><span class="resource-type-badge" style="background:var(--green-bg);color:#059669;">Notes</span></div><h3 class="resource-name">FAC2601 — IFRS 16 Leases summary</h3><div class="resource-meta"><span class="resource-date">2 days ago</span></div></div>
+      <div class="resource-card"><div class="resource-header"><span class="resource-type-badge" style="background:var(--orange-bg);color:#b45309;">Exam Paper</span></div><h3 class="resource-name">FAC2601 — 2025 Mock Exam</h3><div class="resource-meta"><span class="resource-date">1 week ago</span></div></div>
+    </div>
+  </div>`;
+}
+
+/* ================= OUTLOOK / MAIL ================= */
+function renderMailBox(){
+  const box = document.getElementById('mailView');
+  if(!state.outlookConnected){
+    box.innerHTML = `
+      <div class="mail-connect-box">
+        <strong>Connect your email</strong>
+        <span>Link Outlook so your inbox reads like a clean study newsletter — any dates found get added to your planner automatically.</span>
+        <button class="btn-primary" style="width:fit-content;" onclick="connectOutlook()">Connect Outlook</button>
+      </div>
+      <p style="font-size:11.5px;color:var(--text-faint);margin:0 0 10px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;">Preview once connected</p>
+      <div class="preview-dim">${mailRowsHTML()}</div>`;
+  } else {
+    box.innerHTML = `
+      <div class="mail-connected-bar">✅ Connected as simangele@unisa.ac.za <button class="btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="disconnectOutlook()">Disconnect</button></div>
+      ${mailRowsHTML()}`;
+  }
+}
+function mailRowsHTML(){
+  return `
+    <div class="mail-row unread"><div class="mail-avatar" style="background:var(--indigo);">UN</div><div style="flex:1;"><div class="mail-subject">TAX2601: Exam venue and date confirmed</div><div class="mail-snippet">Your TAX2601 exam has been scheduled for 11 September at 09:00, Concourse Hall...</div><div class="mail-meta"><span>UNISA Notices</span>·<span>Today, 08:12</span>·<span class="pill ok">📅 Added to planner</span></div></div></div>
+    <div class="mail-row"><div class="mail-avatar" style="background:var(--orange);">MG</div><div style="flex:1;"><div class="mail-subject">MAC2602 lecturer: Assignment 2 rubric attached</div><div class="mail-snippet">Please find the marking rubric for Assignment 2, due 30 August, attached...</div><div class="mail-meta"><span>M. Govender</span>·<span>Yesterday</span>·<span class="pill ok">📅 Added to planner</span></div></div></div>
+    <div class="mail-row"><div class="mail-avatar" style="background:var(--green);">UL</div><div style="flex:1;"><div class="mail-subject">UNISA Library: new e-reserves for Accounting Sciences</div><div class="mail-snippet">This month's featured e-reserves include updated IFRS guidance...</div><div class="mail-meta"><span>UNISA Library</span>·<span>2 days ago</span></div></div></div>`;
+}
+function connectOutlook(){
+  const box=document.getElementById('mailView');
+  box.innerHTML = `<div class="lms-connect-box"><div class="spinner"></div><p style="font-size:13.5px;color:var(--text-soft);">Connecting to Outlook...</p></div>`;
+  setTimeout(()=>{ state.outlookConnected=true; renderMailBox(); }, 1000);
+}
+function disconnectOutlook(){ state.outlookConnected=false; renderMailBox(); }
+
+/* ================= HOME FEED TOGGLE ================= */
+function showFeed(which, btn){
+  document.getElementById('feedView').style.display = which==='feed'?'block':'none';
+  document.getElementById('mailView').style.display = which==='mail'?'block':'none';
+  document.querySelectorAll('.feed-toggle button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(which==='mail') renderMailBox();
+}
+
+/* ================= MESSAGES (DMs) ================= */
+const conversations = [
+  {id:'c1', name:'Lindiwe Khumalo', course:'BCompt Accounting Science', avatar:'LK', online:true},
+  {id:'c2', name:'Thabo Mokoena', course:'BCompt Accounting Science', avatar:'TM', online:false},
+  {id:'c3', name:'Nomvula Peters', course:'BCompt Accounting Science', avatar:'NP', online:true},
+  {id:'c4', name:'Karabo Sithole', course:'BCompt Accounting Science', avatar:'KS', online:false},
+  {id:'c5', name:'Zanele Mahlangu', course:'BCompt Accounting Science', avatar:'ZM', online:false}
+];
+const dmMessages = {
+  c1:[{sender:'them',content:"Hey! Are you joining the FAC2601 revision call tonight?",timestamp:'14:02'},{sender:'me',content:"Yes, I'll be there after 5pm",timestamp:'14:05'}],
+  c2:[{sender:'them',content:"Thanks for the MAC2601 working, that made sense finally 🙏",timestamp:'Yesterday'}],
+  c3:[], c4:[], c5:[]
+};
+let currentDm = null;
+let dmDeleteTarget = null;
+
+function renderConversationsList(){
+  const q = (document.getElementById('convSearchInput')?.value || '').toLowerCase();
+  const listEl = document.getElementById('conversationsList');
+  const filtered = conversations.filter(c => c.name.toLowerCase().includes(q) || c.course.toLowerCase().includes(q));
+  document.getElementById('convSubtitle').textContent = `${conversations.length} students on UniSekela`;
+  if(filtered.length===0){ listEl.innerHTML = `<div style="padding:30px 20px;text-align:center;color:var(--text-soft);font-size:13px;">No students found</div>`; return; }
+  listEl.innerHTML = filtered.map(c=>{
+    const msgs = dmMessages[c.id]||[];
+    const last = msgs.length ? msgs[msgs.length-1].content.slice(0,32)+(msgs[msgs.length-1].content.length>32?'…':'') : 'Start a conversation...';
+    return `<div class="conversation-item ${currentDm===c.id?'active':''}" onclick="openDmChat('${c.id}')">
+      <div class="conv-avatar-container"><div class="conv-avatar">${c.avatar}</div>${c.online?'<div class="online-indicator"></div>':''}</div>
+      <div class="conv-content">
+        <div class="conv-header"><span class="conv-name">${c.name}</span></div>
+        <div class="conv-message"><span class="conv-course">${last}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openDmChat(id){
+  currentDm = id;
+  renderConversationsList();
+  const c = conversations.find(x=>x.id===id);
+  const area = document.getElementById('dmChatArea');
+  area.innerHTML = `
+    <div class="chat-header">
+      <button class="back-to-list-btn">←</button>
+      <div class="chat-user-info">
+        <div class="chat-avatar-container"><div class="chat-avatar">${c.avatar}</div>${c.online?'<div class="online-indicator"></div>':''}</div>
+        <div><div class="chat-user-name">${c.name}</div><div class="chat-user-status">${c.course}</div></div>
+      </div>
+      <button class="chat-action-btn">ⓘ</button>
+    </div>
+    <div class="messages-container" id="dmMessagesContainer"></div>
+    <div class="message-input-area">
+      <input class="message-input" id="dmInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter')sendDmMessage()">
+      <button class="send-btn" onclick="sendDmMessage()">➤</button>
+    </div>`;
+  renderDmMessages();
+}
+
+function renderDmMessages(){
+  const container = document.getElementById('dmMessagesContainer');
+  const msgs = dmMessages[currentDm] || [];
+  if(msgs.length===0){ container.innerHTML = `<div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-soft);font-size:13.5px;">No messages yet. Say hi! 👋</div>`; return; }
+  container.innerHTML = msgs.map((m,i)=>`
+    <div class="message ${m.sender}">
+      <div class="message-bubble"><div class="message-text">${m.content}</div><div class="message-timestamp">${m.timestamp}</div></div>
+      ${m.sender==='me' ? `<button class="delete-message-btn" onclick="requestDeleteDm(${i})">✕</button>` : ''}
+    </div>`).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
+function sendDmMessage(){
+  const input = document.getElementById('dmInput');
+  const val = input.value.trim();
+  if(!val || !currentDm) return;
+  dmMessages[currentDm].push({sender:'me', content:val, timestamp:'Just now'});
+  input.value='';
+  renderDmMessages();
+  renderConversationsList();
+}
+
+function requestDeleteDm(index){
+  dmDeleteTarget = index;
+  const overlay = document.createElement('div');
+  overlay.className = 'delete-modal-overlay';
+  overlay.id = 'dmDeleteOverlay';
+  overlay.innerHTML = `<div class="delete-modal">
+    <h3 class="delete-modal-title">Delete Message?</h3>
+    <p class="delete-modal-text">Choose how you want to delete this message</p>
+    <div class="delete-modal-buttons">
+      <button class="delete-option-btn" onclick="deleteDm('me')"><span class="delete-option-title">Delete for me</span><span class="delete-option-desc">Remove from your chat only</span></button>
+      <button class="delete-option-btn" onclick="deleteDm('everyone')"><span class="delete-option-title">Delete for everyone</span><span class="delete-option-desc">Unsend this message</span></button>
+    </div>
+    <button class="delete-modal-cancel-new" onclick="closeDmDeleteModal()">Cancel</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click',(e)=>{ if(e.target===overlay) closeDmDeleteModal(); });
+}
+function deleteDm(){
+  if(dmDeleteTarget!==null){ dmMessages[currentDm].splice(dmDeleteTarget,1); }
+  closeDmDeleteModal();
+  renderDmMessages();
+  renderConversationsList();
+}
+function closeDmDeleteModal(){ const el=document.getElementById('dmDeleteOverlay'); if(el) el.remove(); dmDeleteTarget=null; }
+
+/* ================= NOTIFICATIONS ================= */
+let notifFilter = 'All';
+const notifications = [
+  {id:1,type:'like',icon:'👍',user:'Sarah Ndaba',action:'liked your message',content:'"Thanks for sharing the notes! Really helpful 🙏"',timestamp:'2 min ago',read:false,group:'FAC2601'},
+  {id:2,type:'reply',icon:'💬',user:'Mike Dlamini',action:'replied to your post',content:'"Hey, do you understand question 5 from the assignment?"',timestamp:'1 hour ago',read:false,group:'MAC2601'},
+  {id:3,type:'pin',icon:'📌',user:'UniSekela AI',action:'pinned a new deadline in',content:'MAC2602 Assignment 2 due 30 August',timestamp:'3 hours ago',read:false,group:'MAC2602'},
+  {id:4,type:'member',icon:'➕',user:'Zanele Khumalo',action:'joined',content:null,timestamp:'5 hours ago',read:true,group:'AIN2601'},
+  {id:5,type:'resource',icon:'📄',user:'Thabo Mokoena',action:'shared a resource in',content:'2025 Mock Exam Paper - Solutions',timestamp:'Yesterday',read:true,group:'MAC2601'},
+  {id:6,type:'like',icon:'👍',user:'Lerato Nkosi',action:'liked your message',content:'"The study session was great, thanks!"',timestamp:'Yesterday',read:true,group:'TAX2601'},
+  {id:7,type:'reply',icon:'💬',user:'Mike Dlamini',action:'mentioned you in',content:'@You Can you help explain depreciation?',timestamp:'2 days ago',read:true,group:'FAC2601'}
+];
+function setNotifFilter(f){
+  notifFilter = f;
+  document.querySelectorAll('#notifFilters .filter-btn').forEach(b=>b.classList.toggle('active', b.dataset.f===f));
+  renderNotifications();
+}
+function markAllRead(){
+  notifications.forEach(n=>n.read=true);
+  renderNotifications();
+}
+function renderNotifications(){
+  let list = notifications.filter(n=>{
+    if(notifFilter==='Unread') return !n.read;
+    if(notifFilter==='Mentions') return n.content && n.content.includes('@You');
+    if(notifFilter==='Group Updates') return n.type==='pin' || n.type==='member';
+    return true;
+  });
+  const unreadCount = notifications.filter(n=>!n.read).length;
+  document.getElementById('unreadCountPill').textContent = `${unreadCount} new`;
+  document.getElementById('unreadCountPill').style.display = unreadCount>0 ? 'inline-flex':'none';
+
+  const today = list.filter(n=>n.timestamp.includes('min')||n.timestamp.includes('hour'));
+  const yesterday = list.filter(n=>n.timestamp==='Yesterday');
+  const earlier = list.filter(n=>n.timestamp.includes('days ago'));
+
+  const renderGroup = (arr,title)=>{
+    if(arr.length===0) return '';
+    return `<div class="notification-group"><div class="group-title">${title}</div>${arr.map(n=>`
+      <div class="notification-item ${n.read?'':'unread'}" onclick="markNotifRead(${n.id})">
+        <div class="notif-icon ${n.type}">${n.icon}</div>
+        <div class="notif-content">
+          <div class="notif-text"><span class="notif-user">${n.user}</span> <span>${n.action}</span> ${n.group?`<span class="notif-group">${n.group}</span>`:''}</div>
+          ${n.content?`<div class="notif-preview">${n.content}</div>`:''}
+          <div class="notif-timestamp">${n.timestamp}</div>
+        </div>
+        ${!n.read?'<div class="unread-dot"></div>':''}
+      </div>`).join('')}</div>`;
+  };
+
+  const html = renderGroup(today,'Today') + renderGroup(yesterday,'Yesterday') + renderGroup(earlier,'Earlier');
+  document.getElementById('notificationsList').innerHTML = html || `<div class="empty-state">🔔<br>No notifications to show</div>`;
+}
+function markNotifRead(id){
+  const n = notifications.find(x=>x.id===id);
+  if(n) n.read = true;
+  renderNotifications();
+}
+
+/* ================= INIT ================= */
+renderMyGroups();
+renderConversationsList();
+renderNotifications();
+</script>
+</body>
+</html>
